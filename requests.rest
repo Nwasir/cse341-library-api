@@ -1,6 +1,5 @@
 @localhost = http://localhost:3000
-# Change this if Render gave the web service a different URL.
-@render = https://cse341-library-api.onrender.com
+@render = https://cse341-library-api-b2pm.onrender.com
 
 # Send the requests in order: "Get a book by id" uses the first id from
 # "Get all books", and the GET, PUT and DELETE requests after
