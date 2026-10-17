@@ -1,0 +1,25 @@
+{
+  "name": "cse341-library-api",
+  "version": "1.0.0",
+  "description": "CSE 341 - REST API for a library's books and authors, stored in MongoDB",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node scripts/seed.js",
+    "swagger": "node swagger.js"
+  },
+  "author": "Nnanna Arua Uko",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "mongodb": "^7.7.0",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "swagger-autogen": "^2.23.7"
+  }
+}

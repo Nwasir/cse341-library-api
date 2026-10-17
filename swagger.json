@@ -1,0 +1,591 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Library API",
+    "description": "A REST API for a library catalog. It stores books and authors in MongoDB and can create, read, update and delete both. Requests and responses are JSON. A request with an invalid id or body gets a 400 response that explains what is wrong.",
+    "version": "1.0.0"
+  },
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Books",
+      "description": "The books collection"
+    },
+    {
+      "name": "Authors",
+      "description": "The authors collection"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/books/": {
+      "get": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "Get all books",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Every book in the database",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Book"
+              }
+            }
+          },
+          "500": {
+            "description": "The database request failed",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "Create a book",
+        "description": "All eight fields are required. The Book model at the bottom of this page lists the rules for each field. Anything else in the body, including an _id, is ignored.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The new book",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created. The body has the new book's id, and the Location header is its url.",
+            "schema": {
+              "$ref": "#/definitions/BookId"
+            }
+          },
+          "400": {
+            "description": "A field is missing or invalid, or the body is not a valid JSON object",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "409": {
+            "description": "Another book already has this isbn",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "The database request failed",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/books/{id}": {
+      "get": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "Get a book by id",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The book's _id, copied from Get all books"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The book",
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          },
+          "400": {
+            "description": "The id is not a 24 character hex string",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "No book has this id",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "The database request failed",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "Update a book",
+        "description": "Replaces all eight fields, so every field is required. The Book model at the bottom of this page lists the rules for each field. The _id never changes.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The book's _id, copied from Get all books"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The book's new values",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Updated. The response has no body."
+          },
+          "400": {
+            "description": "The id is not a 24 character hex string, a field is missing or invalid, or the body is not a valid JSON object",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "404": {
+            "description": "No book has this id",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "409": {
+            "description": "A different book already has this isbn",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "The database request failed",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "Delete a book",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The book's _id, copied from Get all books"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted. The body is the book that was deleted.",
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          },
+          "400": {
+            "description": "The id is not a 24 character hex string",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "No book has this id",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "The database request failed",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/authors/": {
+      "get": {
+        "tags": [
+          "Authors"
+        ],
+        "summary": "Get all authors",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Every author in the database",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Author"
+              }
+            }
+          },
+          "500": {
+            "description": "The database request failed",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Authors"
+        ],
+        "summary": "Create an author",
+        "description": "All five fields are required. The Author model at the bottom of this page lists the rules for each field. Anything else in the body, including an _id, is ignored.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The new author",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Author"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created. The body has the new author's id, and the Location header is its url.",
+            "schema": {
+              "$ref": "#/definitions/AuthorId"
+            }
+          },
+          "400": {
+            "description": "A field is missing or invalid, or the body is not a valid JSON object",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "500": {
+            "description": "The database request failed",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/authors/{id}": {
+      "get": {
+        "tags": [
+          "Authors"
+        ],
+        "summary": "Get an author by id",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The author's _id, copied from Get all authors"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The author",
+            "schema": {
+              "$ref": "#/definitions/Author"
+            }
+          },
+          "400": {
+            "description": "The id is not a 24 character hex string",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "No author has this id",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "The database request failed",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Authors"
+        ],
+        "summary": "Update an author",
+        "description": "Replaces all five fields, so every field is required. The Author model at the bottom of this page lists the rules for each field. The _id never changes.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The author's _id, copied from Get all authors"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The author's new values",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Author"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Updated. The response has no body."
+          },
+          "400": {
+            "description": "The id is not a 24 character hex string, a field is missing or invalid, or the body is not a valid JSON object",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "404": {
+            "description": "No author has this id",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "The database request failed",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Authors"
+        ],
+        "summary": "Delete an author",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The author's _id, copied from Get all authors"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted. The body is the author that was deleted.",
+            "schema": {
+              "$ref": "#/definitions/Author"
+            }
+          },
+          "400": {
+            "description": "The id is not a 24 character hex string",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "No author has this id",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "The database request failed",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Book": {
+      "type": "object",
+      "description": "Every field except _id is required. Text fields cannot be empty, and spaces at the start and end are removed.",
+      "required": [
+        "title",
+        "author",
+        "isbn",
+        "genre",
+        "publishedYear",
+        "pageCount",
+        "publisher",
+        "language"
+      ],
+      "properties": {
+        "_id": {
+          "type": "string",
+          "readOnly": true,
+          "description": "Created by MongoDB. Ignored if sent in a request body.",
+          "example": "64f1c2e9a1b2c3d4e5f60718"
+        },
+        "title": {
+          "type": "string",
+          "example": "Purple Hibiscus"
+        },
+        "author": {
+          "type": "string",
+          "description": "The author's full name",
+          "example": "Chimamanda Ngozi Adichie"
+        },
+        "isbn": {
+          "type": "string",
+          "description": "An ISBN-10 or ISBN-13 that no other book has. Hyphens and spaces are removed before it is saved.",
+          "example": "9781616202415"
+        },
+        "genre": {
+          "type": "string",
+          "example": "Literary Fiction"
+        },
+        "publishedYear": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The year the book was first published, from 1 to the current year",
+          "example": 2003
+        },
+        "pageCount": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The number of pages in this edition",
+          "example": 307
+        },
+        "publisher": {
+          "type": "string",
+          "description": "The publisher of this edition",
+          "example": "Algonquin Books"
+        },
+        "language": {
+          "type": "string",
+          "example": "English"
+        }
+      }
+    },
+    "Author": {
+      "type": "object",
+      "description": "Every field except _id is required. Text fields cannot be empty, and spaces at the start and end are removed.",
+      "required": [
+        "name",
+        "birthDate",
+        "birthplace",
+        "nationality",
+        "biography"
+      ],
+      "properties": {
+        "_id": {
+          "type": "string",
+          "readOnly": true,
+          "description": "Created by MongoDB. Ignored if sent in a request body.",
+          "example": "64f1c2e9a1b2c3d4e5f60719"
+        },
+        "name": {
+          "type": "string",
+          "description": "The author's full name, as it appears on their books",
+          "example": "Wole Soyinka"
+        },
+        "birthDate": {
+          "type": "string",
+          "format": "date",
+          "description": "A real date in YYYY-MM-DD format that is not in the future",
+          "example": "1934-07-13"
+        },
+        "birthplace": {
+          "type": "string",
+          "example": "Abeokuta, Nigeria"
+        },
+        "nationality": {
+          "type": "string",
+          "example": "Nigerian"
+        },
+        "biography": {
+          "type": "string",
+          "description": "A short summary of the author's life and work",
+          "example": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+        }
+      }
+    },
+    "BookId": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The new book's _id",
+          "example": "64f1c2e9a1b2c3d4e5f60718"
+        }
+      }
+    },
+    "AuthorId": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The new author's _id",
+          "example": "64f1c2e9a1b2c3d4e5f60719"
+        }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Explains what went wrong"
+        }
+      }
+    },
+    "ValidationError": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Explains what went wrong",
+          "example": "The book has missing or invalid fields."
+        },
+        "errors": {
+          "type": "object",
+          "description": "What is wrong with each missing or invalid field. Not sent when the id or the whole body is the problem.",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "example": {
+            "isbn": "isbn is required",
+            "pageCount": "pageCount must be a whole number greater than 0"
+          }
+        }
+      }
+    }
+  }
+}

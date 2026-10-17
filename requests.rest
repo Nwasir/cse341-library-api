@@ -1,0 +1,335 @@
+@localhost = http://localhost:3000
+# Change this if Render gave the web service a different URL.
+@render = https://cse341-library-api.onrender.com
+
+# Send the requests in order: "Get a book by id" uses the first id from
+# "Get all books", and the GET, PUT and DELETE requests after
+# "Create a book" use the id that it returns. The author requests
+# work the same way.
+
+########## Localhost ##########
+
+### Home route
+GET {{localhost}}/
+
+### API documentation (Swagger UI). Open this url in a browser to try each route.
+GET {{localhost}}/api-docs/
+
+### A url that is not a route (404)
+GET {{localhost}}/magazines
+
+########## Localhost: books ##########
+
+### Get all books
+# @name localBooks
+GET {{localhost}}/books
+
+### Get a book by id (uses the first id from "Get all books" above)
+GET {{localhost}}/books/{{localBooks.response.body.$[0]._id}}
+
+### Invalid id (400)
+GET {{localhost}}/books/12345
+
+### Id that does not exist (404)
+GET {{localhost}}/books/000000000000000000000000
+
+### Create a book (201, returns the new book's id)
+# @name localNewBook
+POST {{localhost}}/books
+Content-Type: application/json
+
+{
+  "title": "Purple Hibiscus",
+  "author": "Chimamanda Ngozi Adichie",
+  "isbn": "9781616202415",
+  "genre": "Literary Fiction",
+  "publishedYear": 2003,
+  "pageCount": 307,
+  "publisher": "Algonquin Books",
+  "language": "English"
+}
+
+### Get the book created above
+GET {{localhost}}/books/{{localNewBook.response.body.$.id}}
+
+### Update the book created above (204)
+PUT {{localhost}}/books/{{localNewBook.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "title": "Purple Hibiscus",
+  "author": "Chimamanda Ngozi Adichie",
+  "isbn": "9781616202415",
+  "genre": "Coming-of-age Fiction",
+  "publishedYear": 2003,
+  "pageCount": 307,
+  "publisher": "Algonquin Books of Chapel Hill",
+  "language": "English"
+}
+
+### Get the book again to see the update
+GET {{localhost}}/books/{{localNewBook.response.body.$.id}}
+
+### Create a book with the same isbn as the book above, written with hyphens (409)
+POST {{localhost}}/books
+Content-Type: application/json
+
+{
+  "title": "Purple Hibiscus",
+  "author": "Chimamanda Ngozi Adichie",
+  "isbn": "978-1-61620-241-5",
+  "genre": "Literary Fiction",
+  "publishedYear": 2003,
+  "pageCount": 307,
+  "publisher": "Algonquin Books",
+  "language": "English"
+}
+
+### Delete the book created above (200, returns the deleted book)
+DELETE {{localhost}}/books/{{localNewBook.response.body.$.id}}
+
+### Get the deleted book (404)
+GET {{localhost}}/books/{{localNewBook.response.body.$.id}}
+
+### Create a book with missing fields (400)
+POST {{localhost}}/books
+Content-Type: application/json
+
+{
+  "title": "Purple Hibiscus",
+  "author": "Chimamanda Ngozi Adichie"
+}
+
+### Create a book with invalid values (400)
+POST {{localhost}}/books
+Content-Type: application/json
+
+{
+  "title": "Purple Hibiscus",
+  "author": "Chimamanda Ngozi Adichie",
+  "isbn": "12345",
+  "genre": "Literary Fiction",
+  "publishedYear": 3003,
+  "pageCount": "three hundred",
+  "publisher": "Algonquin Books",
+  "language": "English"
+}
+
+### Create a book with a body that is not valid JSON (400)
+POST {{localhost}}/books
+Content-Type: application/json
+
+{
+  "title": "Purple Hibiscus",
+}
+
+### Update a book that does not exist (404)
+PUT {{localhost}}/books/000000000000000000000000
+Content-Type: application/json
+
+{
+  "title": "Purple Hibiscus",
+  "author": "Chimamanda Ngozi Adichie",
+  "isbn": "9781616202415",
+  "genre": "Literary Fiction",
+  "publishedYear": 2003,
+  "pageCount": 307,
+  "publisher": "Algonquin Books",
+  "language": "English"
+}
+
+### Delete a book that does not exist (404)
+DELETE {{localhost}}/books/000000000000000000000000
+
+########## Localhost: authors ##########
+
+### Get all authors
+# @name localAuthors
+GET {{localhost}}/authors
+
+### Get an author by id (uses the first id from "Get all authors" above)
+GET {{localhost}}/authors/{{localAuthors.response.body.$[0]._id}}
+
+### Invalid id (400)
+GET {{localhost}}/authors/12345
+
+### Id that does not exist (404)
+GET {{localhost}}/authors/000000000000000000000000
+
+### Create an author (201, returns the new author's id)
+# @name localNewAuthor
+POST {{localhost}}/authors
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Get the author created above
+GET {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
+
+### Update the author created above (204)
+PUT {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Ogun State, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Get the author again to see the update
+GET {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
+
+### Delete the author created above (200, returns the deleted author)
+DELETE {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
+
+### Get the deleted author (404)
+GET {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
+
+### Create an author with missing fields (400)
+POST {{localhost}}/authors
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka"
+}
+
+### Create an author whose birthDate is not a real date (400)
+POST {{localhost}}/authors
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-02-30",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Update an author that does not exist (404)
+PUT {{localhost}}/authors/000000000000000000000000
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Delete an author that does not exist (404)
+DELETE {{localhost}}/authors/000000000000000000000000
+
+########## Render ##########
+
+### Home route
+GET {{render}}/
+
+### API documentation (Swagger UI). Open this url in a browser to try each route.
+GET {{render}}/api-docs/
+
+########## Render: books ##########
+
+### Get all books
+# @name renderBooks
+GET {{render}}/books
+
+### Get a book by id (uses the first id from "Get all books" above)
+GET {{render}}/books/{{renderBooks.response.body.$[0]._id}}
+
+### Create a book (201, returns the new book's id)
+# @name renderNewBook
+POST {{render}}/books
+Content-Type: application/json
+
+{
+  "title": "Purple Hibiscus",
+  "author": "Chimamanda Ngozi Adichie",
+  "isbn": "9781616202415",
+  "genre": "Literary Fiction",
+  "publishedYear": 2003,
+  "pageCount": 307,
+  "publisher": "Algonquin Books",
+  "language": "English"
+}
+
+### Get the book created above
+GET {{render}}/books/{{renderNewBook.response.body.$.id}}
+
+### Update the book created above (204)
+PUT {{render}}/books/{{renderNewBook.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "title": "Purple Hibiscus",
+  "author": "Chimamanda Ngozi Adichie",
+  "isbn": "9781616202415",
+  "genre": "Coming-of-age Fiction",
+  "publishedYear": 2003,
+  "pageCount": 307,
+  "publisher": "Algonquin Books of Chapel Hill",
+  "language": "English"
+}
+
+### Get the book again to see the update
+GET {{render}}/books/{{renderNewBook.response.body.$.id}}
+
+### Delete the book created above (200, returns the deleted book)
+DELETE {{render}}/books/{{renderNewBook.response.body.$.id}}
+
+### Get the deleted book (404)
+GET {{render}}/books/{{renderNewBook.response.body.$.id}}
+
+########## Render: authors ##########
+
+### Get all authors
+# @name renderAuthors
+GET {{render}}/authors
+
+### Get an author by id (uses the first id from "Get all authors" above)
+GET {{render}}/authors/{{renderAuthors.response.body.$[0]._id}}
+
+### Create an author (201, returns the new author's id)
+# @name renderNewAuthor
+POST {{render}}/authors
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Get the author created above
+GET {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
+
+### Update the author created above (204)
+PUT {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Ogun State, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Get the author again to see the update
+GET {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
+
+### Delete the author created above (200, returns the deleted author)
+DELETE {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
+
+### Get the deleted author (404)
+GET {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
