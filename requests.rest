@@ -1,10 +1,15 @@
 @localhost = http://localhost:3000
 @render = https://cse341-library-api-b2pm.onrender.com
 
+# The Render section has the same requests as the localhost section.
+#
 # Send the requests in order: "Get a book by id" uses the first id from
 # "Get all books", and the GET, PUT and DELETE requests after
 # "Create a book" use the id that it returns. The author requests
 # work the same way.
+#
+# Render's free plan sleeps when it isn't used, so the first Render
+# request can take up to a minute.
 
 ########## Localhost ##########
 
@@ -26,10 +31,10 @@ GET {{localhost}}/books
 ### Get a book by id (uses the first id from "Get all books" above)
 GET {{localhost}}/books/{{localBooks.response.body.$[0]._id}}
 
-### Invalid id (400)
+### Get a book with an invalid id (400)
 GET {{localhost}}/books/12345
 
-### Id that does not exist (404)
+### Get a book that does not exist (404)
 GET {{localhost}}/books/000000000000000000000000
 
 ### Create a book (201, returns the new book's id)
@@ -38,49 +43,88 @@ POST {{localhost}}/books
 Content-Type: application/json
 
 {
-  "title": "Purple Hibiscus",
-  "author": "Chimamanda Ngozi Adichie",
-  "isbn": "9781616202415",
-  "genre": "Literary Fiction",
-  "publishedYear": 2003,
-  "pageCount": 307,
-  "publisher": "Algonquin Books",
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
   "language": "English"
 }
 
 ### Get the book created above
 GET {{localhost}}/books/{{localNewBook.response.body.$.id}}
 
-### Update the book created above (204)
+### Update the book created above (204). The genre changes to Literary Fiction.
 PUT {{localhost}}/books/{{localNewBook.response.body.$.id}}
 Content-Type: application/json
 
 {
-  "title": "Purple Hibiscus",
-  "author": "Chimamanda Ngozi Adichie",
-  "isbn": "9781616202415",
-  "genre": "Coming-of-age Fiction",
-  "publishedYear": 2003,
-  "pageCount": 307,
-  "publisher": "Algonquin Books of Chapel Hill",
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Literary Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
   "language": "English"
 }
 
 ### Get the book again to see the update
 GET {{localhost}}/books/{{localNewBook.response.body.$.id}}
 
+### Update the book created above with missing fields (400)
+PUT {{localhost}}/books/{{localNewBook.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "genre": "Literary Fiction"
+}
+
+### Update the book created above with invalid values (400)
+PUT {{localhost}}/books/{{localNewBook.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Literary Fiction",
+  "publishedYear": "1960",
+  "pageCount": 0,
+  "publisher": "Anchor Books",
+  "language": ""
+}
+
+### Update the book created above to the isbn of the first book from "Get all books" (409)
+PUT {{localhost}}/books/{{localNewBook.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "{{localBooks.response.body.$[0].isbn}}",
+  "genre": "Literary Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
+  "language": "English"
+}
+
 ### Create a book with the same isbn as the book above, written with hyphens (409)
 POST {{localhost}}/books
 Content-Type: application/json
 
 {
-  "title": "Purple Hibiscus",
-  "author": "Chimamanda Ngozi Adichie",
-  "isbn": "978-1-61620-241-5",
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "978-0-385-47455-9",
   "genre": "Literary Fiction",
-  "publishedYear": 2003,
-  "pageCount": 307,
-  "publisher": "Algonquin Books",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
   "language": "English"
 }
 
@@ -95,8 +139,8 @@ POST {{localhost}}/books
 Content-Type: application/json
 
 {
-  "title": "Purple Hibiscus",
-  "author": "Chimamanda Ngozi Adichie"
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe"
 }
 
 ### Create a book with invalid values (400)
@@ -104,13 +148,13 @@ POST {{localhost}}/books
 Content-Type: application/json
 
 {
-  "title": "Purple Hibiscus",
-  "author": "Chimamanda Ngozi Adichie",
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
   "isbn": "12345",
   "genre": "Literary Fiction",
   "publishedYear": 3003,
-  "pageCount": "three hundred",
-  "publisher": "Algonquin Books",
+  "pageCount": "one hundred ninety-four",
+  "publisher": "Anchor Books",
   "language": "English"
 }
 
@@ -119,7 +163,22 @@ POST {{localhost}}/books
 Content-Type: application/json
 
 {
-  "title": "Purple Hibiscus",
+  "title": "No Longer at Ease",
+}
+
+### Update a book with an invalid id (400)
+PUT {{localhost}}/books/12345
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Literary Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
+  "language": "English"
 }
 
 ### Update a book that does not exist (404)
@@ -127,15 +186,18 @@ PUT {{localhost}}/books/000000000000000000000000
 Content-Type: application/json
 
 {
-  "title": "Purple Hibiscus",
-  "author": "Chimamanda Ngozi Adichie",
-  "isbn": "9781616202415",
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
   "genre": "Literary Fiction",
-  "publishedYear": 2003,
-  "pageCount": 307,
-  "publisher": "Algonquin Books",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
   "language": "English"
 }
+
+### Delete a book with an invalid id (400)
+DELETE {{localhost}}/books/12345
 
 ### Delete a book that does not exist (404)
 DELETE {{localhost}}/books/000000000000000000000000
@@ -149,10 +211,10 @@ GET {{localhost}}/authors
 ### Get an author by id (uses the first id from "Get all authors" above)
 GET {{localhost}}/authors/{{localAuthors.response.body.$[0]._id}}
 
-### Invalid id (400)
+### Get an author with an invalid id (400)
 GET {{localhost}}/authors/12345
 
-### Id that does not exist (404)
+### Get an author that does not exist (404)
 GET {{localhost}}/authors/000000000000000000000000
 
 ### Create an author (201, returns the new author's id)
@@ -171,7 +233,7 @@ Content-Type: application/json
 ### Get the author created above
 GET {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
 
-### Update the author created above (204)
+### Update the author created above (204). The birthplace changes.
 PUT {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
 Content-Type: application/json
 
@@ -185,6 +247,26 @@ Content-Type: application/json
 
 ### Get the author again to see the update
 GET {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
+
+### Update the author created above with missing fields (400)
+PUT {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka"
+}
+
+### Update the author created above with invalid values (400)
+PUT {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "13/07/1934",
+  "birthplace": "Abeokuta, Ogun State, Nigeria",
+  "nationality": "",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
 
 ### Delete the author created above (200, returns the deleted author)
 DELETE {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
@@ -212,6 +294,18 @@ Content-Type: application/json
   "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
 }
 
+### Update an author with an invalid id (400)
+PUT {{localhost}}/authors/12345
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
 ### Update an author that does not exist (404)
 PUT {{localhost}}/authors/000000000000000000000000
 Content-Type: application/json
@@ -224,6 +318,9 @@ Content-Type: application/json
   "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
 }
 
+### Delete an author with an invalid id (400)
+DELETE {{localhost}}/authors/12345
+
 ### Delete an author that does not exist (404)
 DELETE {{localhost}}/authors/000000000000000000000000
 
@@ -235,6 +332,9 @@ GET {{render}}/
 ### API documentation (Swagger UI). Open this url in a browser to try each route.
 GET {{render}}/api-docs/
 
+### A url that is not a route (404)
+GET {{render}}/magazines
+
 ########## Render: books ##########
 
 ### Get all books
@@ -244,48 +344,176 @@ GET {{render}}/books
 ### Get a book by id (uses the first id from "Get all books" above)
 GET {{render}}/books/{{renderBooks.response.body.$[0]._id}}
 
+### Get a book with an invalid id (400)
+GET {{render}}/books/12345
+
+### Get a book that does not exist (404)
+GET {{render}}/books/000000000000000000000000
+
 ### Create a book (201, returns the new book's id)
 # @name renderNewBook
 POST {{render}}/books
 Content-Type: application/json
 
 {
-  "title": "Purple Hibiscus",
-  "author": "Chimamanda Ngozi Adichie",
-  "isbn": "9781616202415",
-  "genre": "Literary Fiction",
-  "publishedYear": 2003,
-  "pageCount": 307,
-  "publisher": "Algonquin Books",
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
   "language": "English"
 }
 
 ### Get the book created above
 GET {{render}}/books/{{renderNewBook.response.body.$.id}}
 
-### Update the book created above (204)
+### Update the book created above (204). The genre changes to Literary Fiction.
 PUT {{render}}/books/{{renderNewBook.response.body.$.id}}
 Content-Type: application/json
 
 {
-  "title": "Purple Hibiscus",
-  "author": "Chimamanda Ngozi Adichie",
-  "isbn": "9781616202415",
-  "genre": "Coming-of-age Fiction",
-  "publishedYear": 2003,
-  "pageCount": 307,
-  "publisher": "Algonquin Books of Chapel Hill",
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Literary Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
   "language": "English"
 }
 
 ### Get the book again to see the update
 GET {{render}}/books/{{renderNewBook.response.body.$.id}}
 
+### Update the book created above with missing fields (400)
+PUT {{render}}/books/{{renderNewBook.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "genre": "Literary Fiction"
+}
+
+### Update the book created above with invalid values (400)
+PUT {{render}}/books/{{renderNewBook.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Literary Fiction",
+  "publishedYear": "1960",
+  "pageCount": 0,
+  "publisher": "Anchor Books",
+  "language": ""
+}
+
+### Update the book created above to the isbn of the first book from "Get all books" (409)
+PUT {{render}}/books/{{renderNewBook.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "{{renderBooks.response.body.$[0].isbn}}",
+  "genre": "Literary Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
+  "language": "English"
+}
+
+### Create a book with the same isbn as the book above, written with hyphens (409)
+POST {{render}}/books
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "978-0-385-47455-9",
+  "genre": "Literary Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
+  "language": "English"
+}
+
 ### Delete the book created above (200, returns the deleted book)
 DELETE {{render}}/books/{{renderNewBook.response.body.$.id}}
 
 ### Get the deleted book (404)
 GET {{render}}/books/{{renderNewBook.response.body.$.id}}
+
+### Create a book with missing fields (400)
+POST {{render}}/books
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe"
+}
+
+### Create a book with invalid values (400)
+POST {{render}}/books
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "12345",
+  "genre": "Literary Fiction",
+  "publishedYear": 3003,
+  "pageCount": "one hundred ninety-four",
+  "publisher": "Anchor Books",
+  "language": "English"
+}
+
+### Create a book with a body that is not valid JSON (400)
+POST {{render}}/books
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+}
+
+### Update a book with an invalid id (400)
+PUT {{render}}/books/12345
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Literary Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
+  "language": "English"
+}
+
+### Update a book that does not exist (404)
+PUT {{render}}/books/000000000000000000000000
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Literary Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
+  "language": "English"
+}
+
+### Delete a book with an invalid id (400)
+DELETE {{render}}/books/12345
+
+### Delete a book that does not exist (404)
+DELETE {{render}}/books/000000000000000000000000
 
 ########## Render: authors ##########
 
@@ -295,6 +523,12 @@ GET {{render}}/authors
 
 ### Get an author by id (uses the first id from "Get all authors" above)
 GET {{render}}/authors/{{renderAuthors.response.body.$[0]._id}}
+
+### Get an author with an invalid id (400)
+GET {{render}}/authors/12345
+
+### Get an author that does not exist (404)
+GET {{render}}/authors/000000000000000000000000
 
 ### Create an author (201, returns the new author's id)
 # @name renderNewAuthor
@@ -312,7 +546,7 @@ Content-Type: application/json
 ### Get the author created above
 GET {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
 
-### Update the author created above (204)
+### Update the author created above (204). The birthplace changes.
 PUT {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
 Content-Type: application/json
 
@@ -327,8 +561,78 @@ Content-Type: application/json
 ### Get the author again to see the update
 GET {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
 
+### Update the author created above with missing fields (400)
+PUT {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka"
+}
+
+### Update the author created above with invalid values (400)
+PUT {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "13/07/1934",
+  "birthplace": "Abeokuta, Ogun State, Nigeria",
+  "nationality": "",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
 ### Delete the author created above (200, returns the deleted author)
 DELETE {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
 
 ### Get the deleted author (404)
 GET {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
+
+### Create an author with missing fields (400)
+POST {{render}}/authors
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka"
+}
+
+### Create an author whose birthDate is not a real date (400)
+POST {{render}}/authors
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-02-30",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Update an author with an invalid id (400)
+PUT {{render}}/authors/12345
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Update an author that does not exist (404)
+PUT {{render}}/authors/000000000000000000000000
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Delete an author with an invalid id (400)
+DELETE {{render}}/authors/12345
+
+### Delete an author that does not exist (404)
+DELETE {{render}}/authors/000000000000000000000000
