@@ -17,6 +17,10 @@ const doc = {
   tags: [
     { name: 'Books', description: 'The books collection' },
     { name: 'Authors', description: 'The authors collection' },
+    {
+      name: 'Profile',
+      description: 'The logged-in user. Log in at /login and log out at /logout.',
+    },
   ],
   // '@definitions' is copied into swagger.json as written.
   '@definitions': {
@@ -124,6 +128,41 @@ const doc = {
           type: 'string',
           description: "The new author's _id",
           example: '64f1c2e9a1b2c3d4e5f60719',
+        },
+      },
+    },
+    Profile: {
+      type: 'object',
+      description:
+        'The user Auth0 logged in. Which fields are sent depends on how the user logged in, e.g. with Google or an email and password.',
+      properties: {
+        sub: {
+          type: 'string',
+          description: "The user's Auth0 id",
+          example: 'google-oauth2|103547991597142817347',
+        },
+        name: { type: 'string', example: 'Ada Obi' },
+        given_name: { type: 'string', example: 'Ada' },
+        family_name: { type: 'string', example: 'Obi' },
+        nickname: { type: 'string', example: 'adaobi' },
+        email: { type: 'string', format: 'email', example: 'ada.obi@example.com' },
+        email_verified: { type: 'boolean', example: true },
+        picture: {
+          type: 'string',
+          format: 'uri',
+          description: "A link to the user's profile picture",
+          example: 'https://s.gravatar.com/avatar/0000.png',
+        },
+        updated_at: {
+          type: 'string',
+          format: 'date-time',
+          description: 'When Auth0 last updated the profile',
+          example: '2026-10-31T09:15:00.000Z',
+        },
+        sid: {
+          type: 'string',
+          description: "The id of the user's Auth0 login session",
+          example: 'Qm9vazFTZXNzaW9uSWQxMjM0NTY3',
         },
       },
     },

@@ -1,7 +1,19 @@
 require('dotenv').config({ quiet: true });
 const express = require('express');
+const { auth } = require('express-openid-connect');
 
 const mongodb = require('./db/connect');
+
+// The server can't connect to MongoDB or log users in without these.
+const missing = ['MONGODB_URI', 'SECRET', 'CLIENT_ID', 'CLIENT_SECRET', 'ISSUER_BASE_URL'].filter(
+  (name) => !process.env[name]
+);
+if (missing.length) {
+  console.error(
+    `Failed to start server: ${missing.join(', ')} not set. Add them to .env or the Render environment variables.`
+  );
+  process.exit(1);
+}
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,6 +29,25 @@ app.use((req, res, next) => {
 
 // Reads JSON request bodies into req.body.
 app.use(express.json());
+
+// Auth0 login. This adds the /login, /logout and /callback routes, and
+// req.oidc, which tells the other routes who is logged in. authRequired
+// is false so the GET routes stay public.
+// response_type 'code' makes Auth0 redirect back to /callback with a code
+// that the server swaps for the user's details. The default sends them in
+// a form POST instead, which browsers can block on http://localhost.
+app.use(
+  auth({
+    authRequired: false,
+    auth0Logout: true,
+    secret: process.env.SECRET,
+    baseURL: process.env.BASE_URL || `http://localhost:${port}`,
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    issuerBaseURL: process.env.ISSUER_BASE_URL,
+    authorizationParams: { response_type: 'code' },
+  })
+);
 
 app.use('/', require('./routes'));
 
@@ -42,10 +73,6 @@ app.use((err, req, res, next) => {
 });
 
 const start = async () => {
-  if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI is not set. Add it to .env or the Render environment variables.');
-  }
-
   const db = await mongodb.initDb();
   console.log(`Connected to MongoDB database "${db.databaseName}"`);
 
