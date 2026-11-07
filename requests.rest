@@ -1,6 +1,24 @@
 @localhost = http://localhost:3000
 @render = https://cse341-library-api-b2pm.onrender.com
 
+# POST, PUT and DELETE requests and GET /profile need a login. They send
+# the appSession cookie that the server sets when you log in:
+# 1. In a browser, log in at http://localhost:3000/login (for localCookie)
+#    or https://cse341-library-api-b2pm.onrender.com/login (for renderCookie).
+# 2. Open the browser's developer tools, go to Application > Cookies,
+#    pick the site and copy the Value of the appSession cookie.
+# 3. Paste it right after "appSession=" below.
+# A copied cookie works for about a day after you copy it (logging out in
+# the browser doesn't stop it). When those requests start getting 401
+# responses, copy a new one.
+@localCookie = appSession=
+@renderCookie = appSession=
+
+# "# @no-cookie-jar" stops REST Client from saving cookies from responses
+# and sending them with later requests. Each request then sends only the
+# Cookie header written in it, so the "without logging in" requests
+# always get a 401.
+#
 # The Render section has the same requests as the localhost section.
 #
 # Send the requests in order: "Get a book by id" uses the first id from
@@ -22,6 +40,83 @@ GET {{localhost}}/api-docs/
 ### A url that is not a route (404)
 GET {{localhost}}/magazines
 
+########## Localhost: login ##########
+
+### Your profile (200 once localCookie at the top of this file has your cookie)
+# @no-cookie-jar
+GET {{localhost}}/profile
+Cookie: {{localCookie}}
+
+### Your profile without logging in (401)
+# @no-cookie-jar
+GET {{localhost}}/profile
+
+### Create a book without logging in (401)
+# @no-cookie-jar
+POST {{localhost}}/books
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
+  "language": "English"
+}
+
+### Update a book without logging in (401, even though no book has this id)
+# @no-cookie-jar
+PUT {{localhost}}/books/000000000000000000000000
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
+  "language": "English"
+}
+
+### Delete a book without logging in (401, even though no book has this id)
+# @no-cookie-jar
+DELETE {{localhost}}/books/000000000000000000000000
+
+### Create an author without logging in (401)
+# @no-cookie-jar
+POST {{localhost}}/authors
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Update an author without logging in (401, even though no author has this id)
+# @no-cookie-jar
+PUT {{localhost}}/authors/000000000000000000000000
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Delete an author without logging in (401, even though no author has this id)
+# @no-cookie-jar
+DELETE {{localhost}}/authors/000000000000000000000000
+
 ########## Localhost: books ##########
 
 ### Get all books
@@ -39,8 +134,10 @@ GET {{localhost}}/books/000000000000000000000000
 
 ### Create a book (201, returns the new book's id)
 # @name localNewBook
+# @no-cookie-jar
 POST {{localhost}}/books
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -57,8 +154,10 @@ Content-Type: application/json
 GET {{localhost}}/books/{{localNewBook.response.body.$.id}}
 
 ### Update the book created above (204). The genre changes to Literary Fiction.
+# @no-cookie-jar
 PUT {{localhost}}/books/{{localNewBook.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -75,8 +174,10 @@ Content-Type: application/json
 GET {{localhost}}/books/{{localNewBook.response.body.$.id}}
 
 ### Update the book created above with missing fields (400)
+# @no-cookie-jar
 PUT {{localhost}}/books/{{localNewBook.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -84,8 +185,10 @@ Content-Type: application/json
 }
 
 ### Update the book created above with invalid values (400)
+# @no-cookie-jar
 PUT {{localhost}}/books/{{localNewBook.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -99,8 +202,10 @@ Content-Type: application/json
 }
 
 ### Update the book created above to the isbn of the first book from "Get all books" (409)
+# @no-cookie-jar
 PUT {{localhost}}/books/{{localNewBook.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -114,8 +219,10 @@ Content-Type: application/json
 }
 
 ### Create a book with the same isbn as the book above, written with hyphens (409)
+# @no-cookie-jar
 POST {{localhost}}/books
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -129,14 +236,18 @@ Content-Type: application/json
 }
 
 ### Delete the book created above (200, returns the deleted book)
+# @no-cookie-jar
 DELETE {{localhost}}/books/{{localNewBook.response.body.$.id}}
+Cookie: {{localCookie}}
 
 ### Get the deleted book (404)
 GET {{localhost}}/books/{{localNewBook.response.body.$.id}}
 
 ### Create a book with missing fields (400)
+# @no-cookie-jar
 POST {{localhost}}/books
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -144,8 +255,10 @@ Content-Type: application/json
 }
 
 ### Create a book with invalid values (400)
+# @no-cookie-jar
 POST {{localhost}}/books
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -159,16 +272,20 @@ Content-Type: application/json
 }
 
 ### Create a book with a body that is not valid JSON (400)
+# @no-cookie-jar
 POST {{localhost}}/books
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "title": "No Longer at Ease",
 }
 
 ### Update a book with an invalid id (400)
+# @no-cookie-jar
 PUT {{localhost}}/books/12345
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -182,8 +299,10 @@ Content-Type: application/json
 }
 
 ### Update a book that does not exist (404)
+# @no-cookie-jar
 PUT {{localhost}}/books/000000000000000000000000
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -197,10 +316,14 @@ Content-Type: application/json
 }
 
 ### Delete a book with an invalid id (400)
+# @no-cookie-jar
 DELETE {{localhost}}/books/12345
+Cookie: {{localCookie}}
 
 ### Delete a book that does not exist (404)
+# @no-cookie-jar
 DELETE {{localhost}}/books/000000000000000000000000
+Cookie: {{localCookie}}
 
 ########## Localhost: authors ##########
 
@@ -219,8 +342,10 @@ GET {{localhost}}/authors/000000000000000000000000
 
 ### Create an author (201, returns the new author's id)
 # @name localNewAuthor
+# @no-cookie-jar
 POST {{localhost}}/authors
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -234,8 +359,10 @@ Content-Type: application/json
 GET {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
 
 ### Update the author created above (204). The birthplace changes.
+# @no-cookie-jar
 PUT {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -249,16 +376,20 @@ Content-Type: application/json
 GET {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
 
 ### Update the author created above with missing fields (400)
+# @no-cookie-jar
 PUT {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "name": "Wole Soyinka"
 }
 
 ### Update the author created above with invalid values (400)
+# @no-cookie-jar
 PUT {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -269,22 +400,28 @@ Content-Type: application/json
 }
 
 ### Delete the author created above (200, returns the deleted author)
+# @no-cookie-jar
 DELETE {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
+Cookie: {{localCookie}}
 
 ### Get the deleted author (404)
 GET {{localhost}}/authors/{{localNewAuthor.response.body.$.id}}
 
 ### Create an author with missing fields (400)
+# @no-cookie-jar
 POST {{localhost}}/authors
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "name": "Wole Soyinka"
 }
 
 ### Create an author whose birthDate is not a real date (400)
+# @no-cookie-jar
 POST {{localhost}}/authors
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -295,8 +432,10 @@ Content-Type: application/json
 }
 
 ### Update an author with an invalid id (400)
+# @no-cookie-jar
 PUT {{localhost}}/authors/12345
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -307,8 +446,10 @@ Content-Type: application/json
 }
 
 ### Update an author that does not exist (404)
+# @no-cookie-jar
 PUT {{localhost}}/authors/000000000000000000000000
 Content-Type: application/json
+Cookie: {{localCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -319,10 +460,14 @@ Content-Type: application/json
 }
 
 ### Delete an author with an invalid id (400)
+# @no-cookie-jar
 DELETE {{localhost}}/authors/12345
+Cookie: {{localCookie}}
 
 ### Delete an author that does not exist (404)
+# @no-cookie-jar
 DELETE {{localhost}}/authors/000000000000000000000000
+Cookie: {{localCookie}}
 
 ########## Render ##########
 
@@ -334,6 +479,83 @@ GET {{render}}/api-docs/
 
 ### A url that is not a route (404)
 GET {{render}}/magazines
+
+########## Render: login ##########
+
+### Your profile (200 once renderCookie at the top of this file has your cookie)
+# @no-cookie-jar
+GET {{render}}/profile
+Cookie: {{renderCookie}}
+
+### Your profile without logging in (401)
+# @no-cookie-jar
+GET {{render}}/profile
+
+### Create a book without logging in (401)
+# @no-cookie-jar
+POST {{render}}/books
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
+  "language": "English"
+}
+
+### Update a book without logging in (401, even though no book has this id)
+# @no-cookie-jar
+PUT {{render}}/books/000000000000000000000000
+Content-Type: application/json
+
+{
+  "title": "No Longer at Ease",
+  "author": "Chinua Achebe",
+  "isbn": "9780385474559",
+  "genre": "Fiction",
+  "publishedYear": 1960,
+  "pageCount": 194,
+  "publisher": "Anchor Books",
+  "language": "English"
+}
+
+### Delete a book without logging in (401, even though no book has this id)
+# @no-cookie-jar
+DELETE {{render}}/books/000000000000000000000000
+
+### Create an author without logging in (401)
+# @no-cookie-jar
+POST {{render}}/authors
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Update an author without logging in (401, even though no author has this id)
+# @no-cookie-jar
+PUT {{render}}/authors/000000000000000000000000
+Content-Type: application/json
+
+{
+  "name": "Wole Soyinka",
+  "birthDate": "1934-07-13",
+  "birthplace": "Abeokuta, Nigeria",
+  "nationality": "Nigerian",
+  "biography": "Nigerian playwright, poet and essayist who won the 1986 Nobel Prize in Literature."
+}
+
+### Delete an author without logging in (401, even though no author has this id)
+# @no-cookie-jar
+DELETE {{render}}/authors/000000000000000000000000
 
 ########## Render: books ##########
 
@@ -352,8 +574,10 @@ GET {{render}}/books/000000000000000000000000
 
 ### Create a book (201, returns the new book's id)
 # @name renderNewBook
+# @no-cookie-jar
 POST {{render}}/books
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -370,8 +594,10 @@ Content-Type: application/json
 GET {{render}}/books/{{renderNewBook.response.body.$.id}}
 
 ### Update the book created above (204). The genre changes to Literary Fiction.
+# @no-cookie-jar
 PUT {{render}}/books/{{renderNewBook.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -388,8 +614,10 @@ Content-Type: application/json
 GET {{render}}/books/{{renderNewBook.response.body.$.id}}
 
 ### Update the book created above with missing fields (400)
+# @no-cookie-jar
 PUT {{render}}/books/{{renderNewBook.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -397,8 +625,10 @@ Content-Type: application/json
 }
 
 ### Update the book created above with invalid values (400)
+# @no-cookie-jar
 PUT {{render}}/books/{{renderNewBook.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -412,8 +642,10 @@ Content-Type: application/json
 }
 
 ### Update the book created above to the isbn of the first book from "Get all books" (409)
+# @no-cookie-jar
 PUT {{render}}/books/{{renderNewBook.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -427,8 +659,10 @@ Content-Type: application/json
 }
 
 ### Create a book with the same isbn as the book above, written with hyphens (409)
+# @no-cookie-jar
 POST {{render}}/books
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -442,14 +676,18 @@ Content-Type: application/json
 }
 
 ### Delete the book created above (200, returns the deleted book)
+# @no-cookie-jar
 DELETE {{render}}/books/{{renderNewBook.response.body.$.id}}
+Cookie: {{renderCookie}}
 
 ### Get the deleted book (404)
 GET {{render}}/books/{{renderNewBook.response.body.$.id}}
 
 ### Create a book with missing fields (400)
+# @no-cookie-jar
 POST {{render}}/books
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -457,8 +695,10 @@ Content-Type: application/json
 }
 
 ### Create a book with invalid values (400)
+# @no-cookie-jar
 POST {{render}}/books
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -472,16 +712,20 @@ Content-Type: application/json
 }
 
 ### Create a book with a body that is not valid JSON (400)
+# @no-cookie-jar
 POST {{render}}/books
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "title": "No Longer at Ease",
 }
 
 ### Update a book with an invalid id (400)
+# @no-cookie-jar
 PUT {{render}}/books/12345
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -495,8 +739,10 @@ Content-Type: application/json
 }
 
 ### Update a book that does not exist (404)
+# @no-cookie-jar
 PUT {{render}}/books/000000000000000000000000
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "title": "No Longer at Ease",
@@ -510,10 +756,14 @@ Content-Type: application/json
 }
 
 ### Delete a book with an invalid id (400)
+# @no-cookie-jar
 DELETE {{render}}/books/12345
+Cookie: {{renderCookie}}
 
 ### Delete a book that does not exist (404)
+# @no-cookie-jar
 DELETE {{render}}/books/000000000000000000000000
+Cookie: {{renderCookie}}
 
 ########## Render: authors ##########
 
@@ -532,8 +782,10 @@ GET {{render}}/authors/000000000000000000000000
 
 ### Create an author (201, returns the new author's id)
 # @name renderNewAuthor
+# @no-cookie-jar
 POST {{render}}/authors
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -547,8 +799,10 @@ Content-Type: application/json
 GET {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
 
 ### Update the author created above (204). The birthplace changes.
+# @no-cookie-jar
 PUT {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -562,16 +816,20 @@ Content-Type: application/json
 GET {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
 
 ### Update the author created above with missing fields (400)
+# @no-cookie-jar
 PUT {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "name": "Wole Soyinka"
 }
 
 ### Update the author created above with invalid values (400)
+# @no-cookie-jar
 PUT {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -582,22 +840,28 @@ Content-Type: application/json
 }
 
 ### Delete the author created above (200, returns the deleted author)
+# @no-cookie-jar
 DELETE {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
+Cookie: {{renderCookie}}
 
 ### Get the deleted author (404)
 GET {{render}}/authors/{{renderNewAuthor.response.body.$.id}}
 
 ### Create an author with missing fields (400)
+# @no-cookie-jar
 POST {{render}}/authors
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "name": "Wole Soyinka"
 }
 
 ### Create an author whose birthDate is not a real date (400)
+# @no-cookie-jar
 POST {{render}}/authors
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -608,8 +872,10 @@ Content-Type: application/json
 }
 
 ### Update an author with an invalid id (400)
+# @no-cookie-jar
 PUT {{render}}/authors/12345
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -620,8 +886,10 @@ Content-Type: application/json
 }
 
 ### Update an author that does not exist (404)
+# @no-cookie-jar
 PUT {{render}}/authors/000000000000000000000000
 Content-Type: application/json
+Cookie: {{renderCookie}}
 
 {
   "name": "Wole Soyinka",
@@ -632,7 +900,11 @@ Content-Type: application/json
 }
 
 ### Delete an author with an invalid id (400)
+# @no-cookie-jar
 DELETE {{render}}/authors/12345
+Cookie: {{renderCookie}}
 
 ### Delete an author that does not exist (404)
+# @no-cookie-jar
 DELETE {{render}}/authors/000000000000000000000000
+Cookie: {{renderCookie}}
