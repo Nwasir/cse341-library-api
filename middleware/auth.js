@@ -4,7 +4,10 @@
 const isAuthenticated = (req, res, next) => {
   if (req.oidc.isAuthenticated()) return next();
 
-  res.status(401).json({ message: 'You must be logged in. Log in at /login, then try again.' });
+  res.status(401).json({
+    message:
+      'You must be logged in. Log in at /login (or create an account at /signup), then try again.',
+  });
 };
 
 module.exports = { isAuthenticated };
