@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "title": "Library API",
-    "description": "A REST API for a library catalog. It stores books and authors in MongoDB and can create, read, update and delete both. Requests and responses are JSON. A request with an invalid id or body gets a 400 response that explains what is wrong.",
+    "description": "A REST API for a library catalog. It stores books and authors in MongoDB and can create, read, update and delete both. Requests and responses are JSON. A request with an invalid id or body gets a 400 response that explains what is wrong.\n\n**Logging in:** anyone can read books and authors, but creating, updating and deleting them needs a login, and so does getting your profile. Those routes have a lock icon. [Log in](/login) with Auth0 in this browser, or [create an account](/signup), then come back to this page. The browser then sends your login with every request you try here. [Log out](/logout) when you are done. A request to a locked route without a login gets a 401 response.",
     "version": "1.0.0"
   },
   "basePath": "/",
@@ -17,9 +17,17 @@
     },
     {
       "name": "Profile",
-      "description": "The logged-in user. Log in at /login and log out at /logout."
+      "description": "The logged-in user. Log in at /login (or create an account at /signup) and log out at /logout."
     }
   ],
+  "securityDefinitions": {
+    "loginCookie": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Cookie",
+      "description": "The appSession cookie that the server sets when you log in at /login. On this page you can leave it empty: after you log in, the browser sends the cookie for you. Tools like curl or Postman have to send it themselves. Copy the appSession cookie from the browser after logging in, and enter appSession=<its value> here."
+    }
+  },
   "consumes": [
     "application/json"
   ],
@@ -33,7 +41,7 @@
           "Profile"
         ],
         "summary": "Get the logged-in user",
-        "description": "Log in at /login first. The browser then sends your login with every request from this page.",
+        "description": "Needs a login: log in at /login first. The browser then sends your login with every request from this page.",
         "responses": {
           "200": {
             "description": "Your Auth0 profile",
@@ -47,7 +55,12 @@
               "$ref": "#/definitions/Error"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "loginCookie": []
+          }
+        ]
       }
     },
     "/books/": {
@@ -80,7 +93,7 @@
           "Books"
         ],
         "summary": "Create a book",
-        "description": "All eight fields are required. The Book model at the bottom of this page lists the rules for each field. Anything else in the body, including an _id, is ignored.",
+        "description": "Needs a login: log in at /login first. All eight fields are required. The Book model at the bottom of this page lists the rules for each field. Anything else in the body, including an _id, is ignored.",
         "parameters": [
           {
             "name": "body",
@@ -105,6 +118,12 @@
               "$ref": "#/definitions/ValidationError"
             }
           },
+          "401": {
+            "description": "You are not logged in",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "409": {
             "description": "Another book already has this isbn",
             "schema": {
@@ -117,7 +136,12 @@
               "$ref": "#/definitions/Error"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "loginCookie": []
+          }
+        ]
       }
     },
     "/books/{id}": {
@@ -168,7 +192,7 @@
           "Books"
         ],
         "summary": "Update a book",
-        "description": "Replaces all eight fields, so every field is required. The Book model at the bottom of this page lists the rules for each field. The _id never changes.",
+        "description": "Needs a login: log in at /login first. Replaces all eight fields, so every field is required. The Book model at the bottom of this page lists the rules for each field. The _id never changes.",
         "parameters": [
           {
             "name": "id",
@@ -197,6 +221,12 @@
               "$ref": "#/definitions/ValidationError"
             }
           },
+          "401": {
+            "description": "You are not logged in",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "404": {
             "description": "No book has this id",
             "schema": {
@@ -215,14 +245,19 @@
               "$ref": "#/definitions/Error"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "loginCookie": []
+          }
+        ]
       },
       "delete": {
         "tags": [
           "Books"
         ],
         "summary": "Delete a book",
-        "description": "",
+        "description": "Needs a login: log in at /login first.",
         "parameters": [
           {
             "name": "id",
@@ -245,6 +280,12 @@
               "$ref": "#/definitions/Error"
             }
           },
+          "401": {
+            "description": "You are not logged in",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "404": {
             "description": "No book has this id",
             "schema": {
@@ -257,7 +298,12 @@
               "$ref": "#/definitions/Error"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "loginCookie": []
+          }
+        ]
       }
     },
     "/authors/": {
@@ -290,7 +336,7 @@
           "Authors"
         ],
         "summary": "Create an author",
-        "description": "All five fields are required. The Author model at the bottom of this page lists the rules for each field. Anything else in the body, including an _id, is ignored.",
+        "description": "Needs a login: log in at /login first. All five fields are required. The Author model at the bottom of this page lists the rules for each field. Anything else in the body, including an _id, is ignored.",
         "parameters": [
           {
             "name": "body",
@@ -315,13 +361,24 @@
               "$ref": "#/definitions/ValidationError"
             }
           },
+          "401": {
+            "description": "You are not logged in",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "500": {
             "description": "The database request failed",
             "schema": {
               "$ref": "#/definitions/Error"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "loginCookie": []
+          }
+        ]
       }
     },
     "/authors/{id}": {
@@ -372,7 +429,7 @@
           "Authors"
         ],
         "summary": "Update an author",
-        "description": "Replaces all five fields, so every field is required. The Author model at the bottom of this page lists the rules for each field. The _id never changes.",
+        "description": "Needs a login: log in at /login first. Replaces all five fields, so every field is required. The Author model at the bottom of this page lists the rules for each field. The _id never changes.",
         "parameters": [
           {
             "name": "id",
@@ -401,6 +458,12 @@
               "$ref": "#/definitions/ValidationError"
             }
           },
+          "401": {
+            "description": "You are not logged in",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "404": {
             "description": "No author has this id",
             "schema": {
@@ -413,14 +476,19 @@
               "$ref": "#/definitions/Error"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "loginCookie": []
+          }
+        ]
       },
       "delete": {
         "tags": [
           "Authors"
         ],
         "summary": "Delete an author",
-        "description": "",
+        "description": "Needs a login: log in at /login first.",
         "parameters": [
           {
             "name": "id",
@@ -443,6 +511,12 @@
               "$ref": "#/definitions/Error"
             }
           },
+          "401": {
+            "description": "You are not logged in",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
           "404": {
             "description": "No author has this id",
             "schema": {
@@ -455,7 +529,12 @@
               "$ref": "#/definitions/Error"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "loginCookie": []
+          }
+        ]
       }
     }
   },
@@ -482,38 +561,38 @@
         },
         "title": {
           "type": "string",
-          "example": "Purple Hibiscus"
+          "example": "No Longer at Ease"
         },
         "author": {
           "type": "string",
           "description": "The author's full name",
-          "example": "Chimamanda Ngozi Adichie"
+          "example": "Chinua Achebe"
         },
         "isbn": {
           "type": "string",
           "description": "An ISBN-10 or ISBN-13 that no other book has. Hyphens and spaces are removed before it is saved.",
-          "example": "9781616202415"
+          "example": "9780385474559"
         },
         "genre": {
           "type": "string",
-          "example": "Literary Fiction"
+          "example": "Fiction"
         },
         "publishedYear": {
           "type": "integer",
           "minimum": 1,
           "description": "The year the book was first published, from 1 to the current year",
-          "example": 2003
+          "example": 1960
         },
         "pageCount": {
           "type": "integer",
           "minimum": 1,
           "description": "The number of pages in this edition",
-          "example": 307
+          "example": 194
         },
         "publisher": {
           "type": "string",
           "description": "The publisher of this edition",
-          "example": "Algonquin Books"
+          "example": "Anchor Books"
         },
         "language": {
           "type": "string",

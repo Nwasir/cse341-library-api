@@ -61,7 +61,8 @@ const createAuthor = async (req, res) => {
   /*
     #swagger.tags = ['Authors']
     #swagger.summary = 'Create an author'
-    #swagger.description = 'All five fields are required. The Author model at the bottom of this page lists the rules for each field. Anything else in the body, including an _id, is ignored.'
+    #swagger.description = 'Needs a login: log in at /login first. All five fields are required. The Author model at the bottom of this page lists the rules for each field. Anything else in the body, including an _id, is ignored.'
+    #swagger.security = [{ "loginCookie": [] }]
     #swagger.parameters['body'] = {
       in: 'body',
       description: 'The new author',
@@ -73,6 +74,7 @@ const createAuthor = async (req, res) => {
       schema: { $ref: '#/definitions/AuthorId' }
     }
     #swagger.responses[400] = { description: 'A field is missing or invalid, or the body is not a valid JSON object', schema: { $ref: '#/definitions/ValidationError' } }
+    #swagger.responses[401] = { description: 'You are not logged in', schema: { $ref: '#/definitions/Error' } }
     #swagger.responses[500] = { description: 'The database request failed', schema: { $ref: '#/definitions/Error' } }
   */
   try {
@@ -96,7 +98,8 @@ const updateAuthor = async (req, res) => {
   /*
     #swagger.tags = ['Authors']
     #swagger.summary = 'Update an author'
-    #swagger.description = 'Replaces all five fields, so every field is required. The Author model at the bottom of this page lists the rules for each field. The _id never changes.'
+    #swagger.description = 'Needs a login: log in at /login first. Replaces all five fields, so every field is required. The Author model at the bottom of this page lists the rules for each field. The _id never changes.'
+    #swagger.security = [{ "loginCookie": [] }]
     #swagger.parameters['id'] = { description: 'The author\'s _id, copied from Get all authors' }
     #swagger.parameters['body'] = {
       in: 'body',
@@ -106,6 +109,7 @@ const updateAuthor = async (req, res) => {
     }
     #swagger.responses[204] = { description: 'Updated. The response has no body.' }
     #swagger.responses[400] = { description: 'The id is not a 24 character hex string, a field is missing or invalid, or the body is not a valid JSON object', schema: { $ref: '#/definitions/ValidationError' } }
+    #swagger.responses[401] = { description: 'You are not logged in', schema: { $ref: '#/definitions/Error' } }
     #swagger.responses[404] = { description: 'No author has this id', schema: { $ref: '#/definitions/Error' } }
     #swagger.responses[500] = { description: 'The database request failed', schema: { $ref: '#/definitions/Error' } }
   */
@@ -127,9 +131,12 @@ const deleteAuthor = async (req, res) => {
   /*
     #swagger.tags = ['Authors']
     #swagger.summary = 'Delete an author'
+    #swagger.description = 'Needs a login: log in at /login first.'
+    #swagger.security = [{ "loginCookie": [] }]
     #swagger.parameters['id'] = { description: 'The author\'s _id, copied from Get all authors' }
     #swagger.responses[200] = { description: 'Deleted. The body is the author that was deleted.', schema: { $ref: '#/definitions/Author' } }
     #swagger.responses[400] = { description: 'The id is not a 24 character hex string', schema: { $ref: '#/definitions/Error' } }
+    #swagger.responses[401] = { description: 'You are not logged in', schema: { $ref: '#/definitions/Error' } }
     #swagger.responses[404] = { description: 'No author has this id', schema: { $ref: '#/definitions/Error' } }
     #swagger.responses[500] = { description: 'The database request failed', schema: { $ref: '#/definitions/Error' } }
   */
